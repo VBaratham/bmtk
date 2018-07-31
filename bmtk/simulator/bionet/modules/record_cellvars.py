@@ -31,10 +31,8 @@ from bmtk.utils.io import cell_vars
 try:
     # Check to see if h5py is built to run in parallel
     if h5py.get_config().mpi:
-        print "Using CellVarRecorderParallel"
         MembraneRecorder = cell_vars.CellVarRecorderParallel
     else:
-        print "Using serial CellVarRecorder"
         MembraneRecorder = cell_vars.CellVarRecorder
 
 except Exception as e:

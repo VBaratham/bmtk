@@ -273,12 +273,6 @@ class CellVarRecorderParallel(CellVarRecorder):
         # iterate through the ranks let rank r determine the offset from rank r-1
         for r in range(comm.Get_size()):
             if rank == r:
-                # if rank < (nhosts - 1):
-                #     # pass the num of segments and num of gids to the next rank
-                #     # TODO: doesn't it need the cumulative sum of nsegments for offset??
-                #     offsets = np.array([self._n_segments_local, self._n_gids_local], dtype=np.uint)
-                #     comm.Send([offsets, MPI.UNSIGNED_INT], dest=(rank+1))
-
                 if rank > 0:
                     # get num of segments and gids from prev. rank and calculate offsets
                     offsets = np.empty(2, dtype=np.uint)
@@ -303,7 +297,6 @@ class CellVarRecorderParallel(CellVarRecorder):
             total_counts = np.array([self._seg_offset_end, self._gids_end], dtype=np.uint)
         else:
             total_counts = np.empty(2, dtype=np.uint)
-
 
         comm.Bcast(total_counts, root=(nhosts-1))
         self._n_segments_all = total_counts[0]
