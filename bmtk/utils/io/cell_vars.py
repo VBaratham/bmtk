@@ -10,6 +10,8 @@ try:
     rank = comm.Get_rank()
     nhosts = comm.Get_size()
 
+    print "comm, rank, nhosts = {}, {}, {}".format(comm,  rank, nhosts)
+
 except Exception as exc:
     pass
 
@@ -43,7 +45,8 @@ class CellVarRecorder(object):
         self._tmp_files = []
         self._saved_file = file_name
 
-        if mpi_size > 1:
+        # TODO: This message is no long accurate when this constructor is called from CellVarRecorderParallel
+        if mpi_size > 1 and not isinstance(self, CellVarRecorderParallel):
             self._io.log_warning('Was unable to run h5py in parallel (mpi) mode.' +
                                  ' Saving of membrane variable(s) may slow down.')
             tmp_fname = os.path.basename(file_name)  # make sure file names don't clash if there are multiple reports
@@ -140,6 +143,7 @@ class CellVarRecorder(object):
         var_grp.create_dataset('index_pointer', shape=(self._n_gids_all+1,), dtype=np.uint64)
         var_grp.create_dataset('time', data=[self.tstart, self.tstop, self.dt])
 
+        print "gids_beg, gids_end, len(mapping_gids), len(mapping_index) = {}, {}, {}, {}".format(self._gids_beg, self._gids_end, len(self._mapping_gids), len(self._mapping_index))
         var_grp['gids'][self._gids_beg:self._gids_end] = self._mapping_gids
         var_grp['element_id'][self._seg_offset_beg:self._seg_offset_end] = self._mapping_element_ids
         var_grp['element_pos'][self._seg_offset_beg:self._seg_offset_end] = self._mapping_element_pos
@@ -252,9 +256,11 @@ class CellVarRecorderParallel(CellVarRecorder):
     Unlike the parent, this take advantage of parallel h5py to writting to the results file across different ranks.
 
     """
-    def __init__(self, file_name, tmp_dir, variables, buffer_data=True):
-        super(CellVarRecorder, self).__init__(file_name, tmp_dir, variables, buffer_data=buffer_data, mpi_rank=0,
-                                              mpi_size=1)
+    def __init__(self, file_name, tmp_dir, variables, buffer_data=True, mpi_rank=0, mpi_size=1):
+        super(CellVarRecorderParallel, self).__init__(
+            file_name, tmp_dir, variables, buffer_data=buffer_data,
+            mpi_rank=mpi_rank, mpi_size=mpi_size
+        )
 
     def _calc_offset(self):
         # iterate through the ranks let rank r determine the offset from rank r-1
@@ -262,18 +268,21 @@ class CellVarRecorderParallel(CellVarRecorder):
             if rank == r:
                 if rank < (nhosts - 1):
                     # pass the num of segments and num of gids to the next rank
+                    # TODO: doesn't it need the cumulative sum of nsegments for offset??
                     offsets = np.array([self._n_segments_local, self._n_gids_local], dtype=np.uint)
                     comm.Send([offsets, MPI.UNSIGNED_INT], dest=(rank+1))
 
                 if rank > 0:
                     # get num of segments and gids from prev. rank and calculate offsets
-                    offset = np.empty(2, dtype=np.uint)
+                    offsets = np.empty(2, dtype=np.uint)
                     comm.Recv([offsets, MPI.UNSIGNED_INT], source=(r-1))
                     self._seg_offset_beg = offsets[0]
-                    self._seg_offset_end = self._seg_offset_beg + self._n_segments_local
+                    self._gids_beg = offsets[1]
 
-                    self._gids_beg = offset[1]
-                    self._gids_end = self._gids_beg + self._n_gids_local
+                # for some reason, np.uint64 + int = np.float64
+                self._seg_offset_end = int(self._seg_offset_beg) \
+                                       + int(self._n_segments_local)
+                self._gids_end = int(self._gids_beg) + int(self._n_gids_local)
 
             comm.Barrier()
 
@@ -286,6 +295,8 @@ class CellVarRecorderParallel(CellVarRecorder):
         comm.Bcast(total_counts, root=(nhosts-1))
         self._n_segments_all = total_counts[0]
         self._n_gids_all = total_counts[1]
+
+        print "self._n_gids_all = {}".format(self._n_gids_all)
 
     def _create_h5_file(self):
         self._h5_handle = h5py.File(self._file_name, 'w', driver='mpio', comm=MPI.COMM_WORLD)

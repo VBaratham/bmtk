@@ -31,8 +31,10 @@ from bmtk.utils.io import cell_vars
 try:
     # Check to see if h5py is built to run in parallel
     if h5py.get_config().mpi:
+        print "Using CellVarRecorderParallel"
         MembraneRecorder = cell_vars.CellVarRecorderParallel
     else:
+        print "Using serial CellVarRecorder"
         MembraneRecorder = cell_vars.CellVarRecorder
 
 except Exception as e:
@@ -44,6 +46,8 @@ pc = h.ParallelContext()
 MPI_RANK = int(pc.id())
 N_HOSTS = int(pc.nhost())
 
+print "MPI_RANK = {}".format(MPI_RANK)
+print "N_HOSTS = {}".format(N_HOSTS)
 
 def first_element(lst):
     return lst[0]
