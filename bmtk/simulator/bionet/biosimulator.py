@@ -141,6 +141,7 @@ class BioSimulator(Simulator):
 
     @property
     def local_gids(self):
+        # return self.net.get
         return self.net.local_gids
 
     def __elapsed_time(self, time_s):
@@ -188,6 +189,8 @@ class BioSimulator(Simulator):
         elif isinstance(gids, NodeSet):
             gids = gids.gids()
 
+
+        gids = list(set(self.local_gids) & set(gids))
         for gid in gids:
             cell = self.net.get_cell_gid(gid)
             Ic = IClamp(amplitude, delay, duration)
@@ -249,11 +252,9 @@ class BioSimulator(Simulator):
             mod.step(self, self.tstep)
 
         self.tstep += 1
-        tstep_block = self.tstep - self.tstep_start_block  # time step within a block
 
-        # self.save_data_to_block(tstep_block)
         if (self.tstep % self.nsteps_block == 0) or self.tstep == self.nsteps:
-            io.log_info('    step:%d t_sim:%.3f ms' % (self.tstep, h.t))
+            io.log_info('    step:{} t_sim:{:.2f} ms'.format(self.tstep, h.t))
             self.__tstep_end_block = self.tstep
             time_step_interval = (self.__tstep_start_block, self.__tstep_end_block)
 
@@ -313,7 +314,6 @@ class BioSimulator(Simulator):
                     mod = mods.SomaReport(**report.params)
 
                 else:
-                    #print report.params
                     mod = mods.MembraneReport(**report.params)
 
             elif isinstance(report, reports.ECPReport):
@@ -322,6 +322,10 @@ class BioSimulator(Simulator):
                 # TODO: According to spec we need to allow a different subset other than only biophysical cells
                 for gid, cell in network.cell_type_maps('biophysical').items():
                     cell.setup_ecp()
+
+            elif report.module == 'save_synapses':
+                mod = mods.SaveSynapses(**report.params)
+
             else:
                 # TODO: Allow users to register customized modules using pymodules
                 io.log_warning('Unrecognized module {}, skipping.'.format(report.module))
