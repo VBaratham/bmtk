@@ -46,8 +46,6 @@ pc = h.ParallelContext()
 MPI_RANK = int(pc.id())
 N_HOSTS = int(pc.nhost())
 
-print "MPI_RANK = {}".format(MPI_RANK)
-print "N_HOSTS = {}".format(N_HOSTS)
 
 def first_element(lst):
     return lst[0]

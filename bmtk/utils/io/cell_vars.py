@@ -10,8 +10,6 @@ try:
     rank = comm.Get_rank()
     nhosts = comm.Get_size()
 
-    print "comm, rank, nhosts = {}, {}, {}".format(comm,  rank, nhosts)
-
 except Exception as exc:
     pass
 
@@ -45,7 +43,6 @@ class CellVarRecorder(object):
         self._tmp_files = []
         self._saved_file = file_name
 
-        # TODO: This message is no long accurate when this constructor is called from CellVarRecorderParallel
         if mpi_size > 1 and not isinstance(self, CellVarRecorderParallel):
             self._io.log_warning('Was unable to run h5py in parallel (mpi) mode.' +
                                  ' Saving of membrane variable(s) may slow down.')
@@ -143,7 +140,6 @@ class CellVarRecorder(object):
         var_grp.create_dataset('index_pointer', shape=(self._n_gids_all+1,), dtype=np.uint64)
         var_grp.create_dataset('time', data=[self.tstart, self.tstop, self.dt])
 
-        print "gids_beg, gids_end, len(mapping_gids), len(mapping_index) = {}, {}, {}, {}".format(self._gids_beg, self._gids_end, len(self._mapping_gids), len(self._mapping_index))
         var_grp['gids'][self._gids_beg:self._gids_end] = self._mapping_gids
         var_grp['element_id'][self._seg_offset_beg:self._seg_offset_end] = self._mapping_element_ids
         var_grp['element_pos'][self._seg_offset_beg:self._seg_offset_end] = self._mapping_element_pos
@@ -161,13 +157,22 @@ class CellVarRecorder(object):
             data_grp = self._h5_handle.create_group('/{}'.format(var_name))
             if self._buffer_data:
                 # Set up in-memory block to buffer recorded variables before writing to the dataset
-                data_tables.buffer_block = np.zeros((buffer_size, self._n_segments_local), dtype=np.float)
-                data_tables.data_block = data_grp.create_dataset('data', shape=(n_steps, self._n_segments_all),
-                                                                 dtype=np.float, chunks=True)
+                data_tables.buffer_block = np.zeros(
+                    (buffer_size, self._n_segments_local),
+                    dtype=np.float
+                )
+                data_tables.data_block = data_grp.create_dataset(
+                    'data',
+                    shape=(n_steps, self._n_segments_all),
+                    dtype=np.float, chunks=True
+                )
             else:
                 # Since we are not buffering data, we just write directly to the on-disk dataset
-                data_tables.buffer_block = data_grp.create_dataset('data', shape=(n_steps, self._n_segments_all),
-                                                                   dtype=np.float, chunks=True)
+                data_tables.buffer_block = data_grp.create_dataset(
+                    'data',
+                    shape=(n_steps, self._n_segments_all),
+                    dtype=np.float, chunks=True
+                )
 
     def record_cell(self, gid, var_name, seg_vals, tstep):
         """Record cell parameters.
@@ -187,9 +192,11 @@ class CellVarRecorder(object):
         if self._buffer_data:
             blk_beg = self._last_save_indx
             blk_end = blk_beg + self._buffer_block_size
+            seg_beg, seg_end = self._seg_offset_beg, self._seg_offset_end
             self._last_save_indx += self._buffer_block_size
             for _, data_table in self._data_blocks.items():
-                data_table.data_block[blk_beg:blk_end, :] = data_table.buffer_block
+                dat, buf = data_table.data_block, data_table.buffer_block
+                dat[blk_beg:blk_end, seg_beg:seg_end] = buf
 
     def close(self):
         self._h5_handle.close()
@@ -266,11 +273,11 @@ class CellVarRecorderParallel(CellVarRecorder):
         # iterate through the ranks let rank r determine the offset from rank r-1
         for r in range(comm.Get_size()):
             if rank == r:
-                if rank < (nhosts - 1):
-                    # pass the num of segments and num of gids to the next rank
-                    # TODO: doesn't it need the cumulative sum of nsegments for offset??
-                    offsets = np.array([self._n_segments_local, self._n_gids_local], dtype=np.uint)
-                    comm.Send([offsets, MPI.UNSIGNED_INT], dest=(rank+1))
+                # if rank < (nhosts - 1):
+                #     # pass the num of segments and num of gids to the next rank
+                #     # TODO: doesn't it need the cumulative sum of nsegments for offset??
+                #     offsets = np.array([self._n_segments_local, self._n_gids_local], dtype=np.uint)
+                #     comm.Send([offsets, MPI.UNSIGNED_INT], dest=(rank+1))
 
                 if rank > 0:
                     # get num of segments and gids from prev. rank and calculate offsets
@@ -279,10 +286,15 @@ class CellVarRecorderParallel(CellVarRecorder):
                     self._seg_offset_beg = offsets[0]
                     self._gids_beg = offsets[1]
 
-                # for some reason, np.uint64 + int = np.float64
+                # for some reason, np.uint64 + int = np.float64, so need cast to int
                 self._seg_offset_end = int(self._seg_offset_beg) \
                                        + int(self._n_segments_local)
                 self._gids_end = int(self._gids_beg) + int(self._n_gids_local)
+
+                if rank < (nhosts - 1):
+                    # pass the next rank its offset
+                    offsets = np.array([self._seg_offset_end, self._gids_end], dtype=np.uint)
+                    comm.Send([offsets, MPI.UNSIGNED_INT], dest=(rank+1))
 
             comm.Barrier()
 
@@ -292,11 +304,10 @@ class CellVarRecorderParallel(CellVarRecorder):
         else:
             total_counts = np.empty(2, dtype=np.uint)
 
+
         comm.Bcast(total_counts, root=(nhosts-1))
         self._n_segments_all = total_counts[0]
         self._n_gids_all = total_counts[1]
-
-        print "self._n_gids_all = {}".format(self._n_gids_all)
 
     def _create_h5_file(self):
         self._h5_handle = h5py.File(self._file_name, 'w', driver='mpio', comm=MPI.COMM_WORLD)
