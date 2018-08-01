@@ -202,11 +202,7 @@ class CellVarRecorder(object):
 
             for _, data_table in self._data_blocks.items():
                 dat, buf = data_table.data_block, data_table.buffer_block
-                dat[blk_beg:blk_end, seg_beg:seg_end] = buf
-
-
-            for _, data_table in self._data_blocks.items():
-                data_table.data_block[blk_beg:blk_end, :] = data_table.buffer_block[:block_size, :]
+                dat[blk_beg:blk_end, seg_beg:seg_end] = buf[:block_size, :]
 
     def close(self):
         self._h5_handle.close()
