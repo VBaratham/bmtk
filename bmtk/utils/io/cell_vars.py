@@ -303,3 +303,103 @@ class CellVarRecorderParallel(CellVarRecorder):
 
     def merge(self):
         pass
+
+class LFPRecorder(object):
+    """
+    Used to save LFP (calculated using LFPy). In parallel simulations, each node
+    buffers the contribution to LFP from all cells stored on that node, then
+    node 0 adds them together and writes them to disk
+    """
+    
+    class LFPyCell(object):
+        """
+        An object that can be passed into LFPy.lfpcalc.calc_lfp_* methods
+
+        Must implement the following member variables:
+        - {x,y,z}{start,end,min}: list of coordinates of start/end/mid positions
+                                  of each segment
+        - totnsegs: total # segments in the cell
+        
+        And member functions:
+        - get_idx(section): return the indices (into coordinate lists (eg. xstart)) of
+                            segments belonging to `section`
+                            (only ever called with section="soma")
+        - __str__(): for error messages
+        """
+        def __init__(self, bmtk_cell):
+            self._bmtk_cell = bmtk_cell
+
+        @property
+        def totnsegs(self):
+            return len(self._bmtk_cell.get_segments())
+
+        @property
+        def xstart(self):
+            """ Do it like this, or precompute all member vars? """
+            pass
+
+    def __init__(self, file_name, recording_position=(0, 0, 0), sigma=0.1):
+        self._file_name = file_name
+
+        self._x, self._y, self._z = recording_position
+        self._sigma = sigma
+
+        self._lfp_mapping = []
+        self._cells = []
+
+    def add_cell(bmtk_cell):
+        self._cells.append(bmtk_cell)
+        bmtk_cell.store_segments()
+        r_limit = [0.1] * len(bmtk_cell.get_segments()) # TODO: what is this?
+        # TODO: configurable line source method variant
+        self.lfp_mapping.append(
+            calc_lfp_soma_as_point(
+                LFPyCell(bmtk_cell),
+                self._x, self._y, self._x,
+                self._sigma,
+                r_limit
+            )
+        )
+        
+    def initialize(self, nsteps, buffer_size):
+        if rank == 0:
+            self._h5_handle = h5py.File(file_name, 'w')
+            self._h5_handle.create_dataset('lfp', shape=(nsteps,), dtype=np.float)
+            self._h5_handle.create_dataset('time', data=[self.tstart, self.tstop, self.dt])
+            
+        self._buffer = np.zeros((buffer_size,), dtype=np.float)
+        self._last_save_indx = 0
+        self._total_steps = nsteps
+
+    def step(self, tstep):
+        for cell, lfp_map in zip(self._cells, self._lfp_mapping):
+            currmem = np.array([seg._ref_i_membrane_ for seg in cell.get_segments()])
+            LFP += np.dot(lfp_map, currmem)
+
+        update_index = (tstep - self._last_save_indx)
+        self._buffer[update_index] = LFP
+
+    def flush(self):
+        blk_beg = self._last_save_indx
+        blk_end = blk_beg + len(self._buffer)
+        if blk_end > self._total_steps:
+            # Need to handle the case that simulation doesn't end on a block step
+            blk_end = blk_beg + self._total_steps - blk_beg
+
+        block_size = blk_end - blk_beg
+        self._last_save_indx += block_size
+
+        # Send all buffers to rank 0
+        # buffers = comm.gather(self._buffer, root=0)
+        if rank == 0:
+            recvbuf = np.empty([nhosts, len(self._buffer)], dtype=np.float)
+        else:
+            recvbuf = None
+        comm.Gather(self._buffer, recvbuf, root=0)
+            
+        # Write to disk
+        if rank == 0:
+            self._h5_handle['lfp'][blk_beg:blk_end] = np.sum(recvbuf, axis=0)
+
+    def close(self):
+        self._h5_handle.close()

@@ -75,6 +75,7 @@ class SimReport(object):
 class MembraneReport(SimReport, object):
     def __init__(self, report_name, module, params):
         super(MembraneReport, self).__init__(report_name, module, params)
+
         # Want variable_name option to allow for singular of list of params
         variables = params['variable_name']
         if isinstance(variables, list):
@@ -133,6 +134,13 @@ class MembraneReport(SimReport, object):
 
         return report
 
+@SimReport.register_module
+class LFPReport(SimReport):
+
+    @staticmethod
+    def avail_modules():
+        return 'lfp_report'
+    
 
 @SimReport.register_module
 class SpikesReport(SimReport):

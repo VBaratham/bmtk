@@ -178,3 +178,28 @@ class SomaReport(MembraneReport):
                 self._var_recorder.record_cell(gid, var_name, [new_val], tstep)
 
         self._block_step += 1
+
+class LfpReport(object):
+
+    def __init__(self, file_name, cells):
+        self._recorder = LFPRecorder(file_name)
+
+    def _get_gids(self, sim):
+        # get list of gids to save. Will only work for biophysical cells saved on the current MPI rank
+        selected_gids = set(sim.net.get_node_set(self._all_gids).gids())
+        self._local_gids = list(set(sim.biophysical_gids) & selected_gids)
+
+    def initialize(self, sim):
+        self._get_gids()
+
+        for gid in self._local_gids:
+            bmtk_cell = sim.net.get_cell_gid(gid)
+            self.recorder.add_cell(bmtk_cell)
+
+    def step(self, sim, tstep):
+        self._recorder.step(tstep)
+
+    def finalize(self, sim):
+        # TODO: Build in mpi signaling into LFPRecorder
+        pc.barrier()
+        self._var_recorder.close()
