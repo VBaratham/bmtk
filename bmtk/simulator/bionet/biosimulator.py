@@ -312,6 +312,7 @@ class BioSimulator(Simulator):
             elif isinstance(report, reports.MembraneReport):
                 if report.params['sections'] == 'soma':
                     mod = mods.SomaReport(**report.params)
+
                 else:
                     mod = mods.MembraneReport(**report.params)
 

@@ -53,7 +53,7 @@ transforms_table = {
     'first_element': first_element,
 }
 
-
+        
 class MembraneReport(SimulatorMod):
     def __init__(self, tmp_dir, file_name, variable_name, cells, sections='all', buffer_data=True, transform={}):
         """Module used for saving NEURON cell properities at each given step of the simulation.
@@ -179,10 +179,12 @@ class SomaReport(MembraneReport):
 
         self._block_step += 1
 
-class LfpReport(object):
+class LfpReport(SimulatorMod):
 
     def __init__(self, file_name, cells):
-        self._recorder = LFPRecorder(file_name)
+        self._recorder = cell_vars.LFPRecorder(file_name)
+        self._all_gids = cells
+        self._local_gids = []
 
     def _get_gids(self, sim):
         # get list of gids to save. Will only work for biophysical cells saved on the current MPI rank
@@ -190,11 +192,11 @@ class LfpReport(object):
         self._local_gids = list(set(sim.biophysical_gids) & selected_gids)
 
     def initialize(self, sim):
-        self._get_gids()
+        self._get_gids(sim)
 
         for gid in self._local_gids:
             bmtk_cell = sim.net.get_cell_gid(gid)
-            self.recorder.add_cell(bmtk_cell)
+            self._recorder.add_cell(bmtk_cell)
 
     def step(self, sim, tstep):
         self._recorder.step(tstep)

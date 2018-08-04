@@ -5,6 +5,11 @@ import numpy as np
 from bmtk.utils import io
 
 try:
+    from LFPy.lfpcalc import calc_lfp_soma_as_point
+except Exception as exc:
+    pass
+
+try:
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -347,14 +352,14 @@ class LFPRecorder(object):
         self._lfp_mapping = []
         self._cells = []
 
-    def add_cell(bmtk_cell):
+    def add_cell(self, bmtk_cell):
         self._cells.append(bmtk_cell)
         bmtk_cell.store_segments()
         r_limit = [0.1] * len(bmtk_cell.get_segments()) # TODO: what is this?
         # TODO: configurable line source method variant
-        self.lfp_mapping.append(
+        self._lfp_mapping.append(
             calc_lfp_soma_as_point(
-                LFPyCell(bmtk_cell),
+                LFPRecorder.LFPyCell(bmtk_cell),
                 self._x, self._y, self._x,
                 self._sigma,
                 r_limit
