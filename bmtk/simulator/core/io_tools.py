@@ -80,6 +80,8 @@ class IOUtils(object):
 
             # Create log file
             if log_file is not None:
+                # log_path = log_file if os.path.isabs(log_file) else os.path.join(output_dir, log_file)
+                # file_logger = logging.FileHandler(log_path)
                 file_logger = logging.FileHandler(log_file)
                 file_logger.setFormatter(self._log_format)
                 self.logger.addHandler(file_logger)
