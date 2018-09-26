@@ -27,7 +27,8 @@ from neuron import h
 
 #import bmtk.simulator.utils.config as msdk_config
 #from bmtk.utils.sonata.config import SonataConfig
-from bmtk.simulator.core.config import ConfigDict
+#from bmtk.simulator.core.config import ConfigDict
+from bmtk.simulator.utils.config import ConfigDict
 from bmtk.simulator.utils.sim_validator import SimConfigValidator
 from bmtk.simulator.bionet.io_tools import io
 from . import nrn
@@ -56,6 +57,10 @@ bionet_validator = SimConfigValidator(config_schema, file_formats=file_formats)
 
 
 class Config(ConfigDict):
+    @property
+    def cao0(self):
+        return self.conditions['cao0']
+    
     @staticmethod
     def get_validator():
         return bionet_validator

@@ -21,6 +21,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import time
+from six import string_types
 from neuron import h
 from bmtk.simulator.core.simulator import Simulator
 from bmtk.simulator.bionet.io_tools import io
@@ -38,7 +39,7 @@ pc = h.ParallelContext()    # object to access MPI methods
 class BioSimulator(Simulator):
     """Includes methods to run and control the simulation"""
 
-    def __init__(self, network, dt, tstop, v_init, celsius, nsteps_block, start_from_state=False):
+    def __init__(self, network, dt, tstop, v_init, celsius, cao0, nsteps_block, start_from_state=False):
         self.net = network
 
         self._start_from_state = start_from_state
@@ -47,6 +48,7 @@ class BioSimulator(Simulator):
 
         self._v_init = v_init
         self._celsius = celsius
+        self._cao0 = cao0
         self._h = h
 
         self.tstep = int(round(h.t / h.dt))
@@ -112,6 +114,14 @@ class BioSimulator(Simulator):
         self._celsius = c
 
     @property
+    def cao0(self):
+        return self._cao0
+
+    @cao0.setter
+    def cao0(self, cao):
+        self._cao0 = cao
+
+    @property
     def n_steps(self):
         return int(round(self.tstop/self.dt))
 
@@ -169,6 +179,7 @@ class BioSimulator(Simulator):
             h.v_init = self.v_init
 
         h.celsius = self.celsius
+        h.cao0_ca_ion = self.cao0
                 
     def set_spikes_recording(self):
         for gid, _ in self.net.get_local_cells().items():
@@ -184,7 +195,7 @@ class BioSimulator(Simulator):
             gids = self.gids['biophysical']
         if isinstance(gids, int):
             gids = [gids]
-        elif isinstance(gids, basestring):
+        elif isinstance(gids, string_types):
             gids = [int(gids)]
         elif isinstance(gids, NodeSet):
             gids = gids.gids()
@@ -272,6 +283,7 @@ class BioSimulator(Simulator):
                   tstop=config.tstop,
                   v_init=config.v_init,
                   celsius=config.celsius,
+                  cao0=config.cao0,
                   nsteps_block=config.block_step)
 
         network.io.log_info('Building cells.')
