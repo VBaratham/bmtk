@@ -57,6 +57,10 @@ bionet_validator = SimConfigValidator(config_schema, file_formats=file_formats)
 
 
 class Config(ConfigDict):
+    @property
+    def cao0(self):
+        return self.conditions['cao0']
+    
     @staticmethod
     def get_validator():
         return bionet_validator

@@ -107,7 +107,8 @@
       "type": "object",
       "properties": {
         "celsius": {"type": "number"},
-        "v_init": {"type": "number"}
+        "v_init": {"type": "number"},
+        "cao0": {"type": "number"}
       }
     },
 
