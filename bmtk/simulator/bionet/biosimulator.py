@@ -114,6 +114,14 @@ class BioSimulator(Simulator):
         self._celsius = c
 
     @property
+    def cao0(self):
+        return self._cao0
+
+    @cao0.setter
+    def cao0(self, cao):
+        self._cao0 = cao
+
+    @property
     def n_steps(self):
         return int(round(self.tstop/self.dt))
 
