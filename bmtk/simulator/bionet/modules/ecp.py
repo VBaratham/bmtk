@@ -269,6 +269,7 @@ class RecXElectrode(object):
             num = up + np.sqrt(up ** 2 + rT2)
             den = low + np.sqrt(low ** 2 + rT2)
             tr[j, :] = np.log(num / den) / dlmag  # units of (um) use with im_ (total seg current)
+            np.copyto(tr[j, :], 0, where=(dlmag == 0)) # zero out stub segments
 
         tr *= 1 / (4 * math.pi * sigma)
         self.transfer_resistances[gid] = tr

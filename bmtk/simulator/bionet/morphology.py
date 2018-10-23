@@ -99,19 +99,30 @@ class Morphology(object):
                 l1[iseg] = seg.x + 0.5*1/nseg   # x for the end of the segment
                 l05[iseg] = seg.x
 
-            p0[0, ix:ix+nseg] = np.interp(l0, l3d, p3d[0, :])
-            p0[1, ix:ix+nseg] = np.interp(l0, l3d, p3d[1, :])
-            p0[2, ix:ix+nseg] = np.interp(l0, l3d, p3d[2, :])
-            d0[ix:ix+nseg] = np.interp(l0, l3d, diam3d[:])
+            if n3d != 0:
+                p0[0, ix:ix+nseg] = np.interp(l0, l3d, p3d[0, :])
+                p0[1, ix:ix+nseg] = np.interp(l0, l3d, p3d[1, :])
+                p0[2, ix:ix+nseg] = np.interp(l0, l3d, p3d[2, :])
+                d0[ix:ix+nseg] = np.interp(l0, l3d, diam3d[:])
 
-            p1[0, ix:ix+nseg] = np.interp(l1, l3d, p3d[0, :])
-            p1[1, ix:ix+nseg] = np.interp(l1, l3d, p3d[1, :])
-            p1[2, ix:ix+nseg] = np.interp(l1, l3d, p3d[2, :])
-            d1[ix:ix+nseg] = np.interp(l1, l3d, diam3d[:])
+                p1[0, ix:ix+nseg] = np.interp(l1, l3d, p3d[0, :])
+                p1[1, ix:ix+nseg] = np.interp(l1, l3d, p3d[1, :])
+                p1[2, ix:ix+nseg] = np.interp(l1, l3d, p3d[2, :])
+                d1[ix:ix+nseg] = np.interp(l1, l3d, diam3d[:])
 
-            p05[0,ix:ix+nseg] = np.interp(l05, l3d, p3d[0,:])
-            p05[1,ix:ix+nseg] = np.interp(l05, l3d, p3d[1,:])
-            p05[2,ix:ix+nseg] = np.interp(l05, l3d, p3d[2,:])
+                p05[0,ix:ix+nseg] = np.interp(l05, l3d, p3d[0,:])
+                p05[1,ix:ix+nseg] = np.interp(l05, l3d, p3d[1,:])
+                p05[2,ix:ix+nseg] = np.interp(l05, l3d, p3d[2,:])
+            else:
+                # If we are dealing with a stub axon, this compartment
+                # will be zero'd out in the calculation of transfer
+                # resistance in modules/ecp.py
+                
+                if sec not in self.hobj.axonal:
+                    raise Exception("Non-axonal section with 0 3d points (stub)")
+
+                if nseg != 1:
+                    raise Exception("in calc_seg_coords(), n3d = 0, but nseg != 1")
 
             ix += nseg
 

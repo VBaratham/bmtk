@@ -55,17 +55,18 @@ def load_neuron_modules(mechanisms_dir, templates_dir, default_templates=True):
     h.load_file('stdgui.hoc')
 
     bionet_dir = os.path.dirname(__file__)
-    h.load_file(os.path.join(bionet_dir, 'import3d.hoc'))  # customized import3d.hoc to supress warnings
+    # h.load_file(os.path.join(bionet_dir, 'import3d.hoc'))  # customized import3d.hoc to supress warnings
+    # h.load_file('import3d.hoc')
     h.load_file(os.path.join(bionet_dir,'default_templates',  'advance.hoc'))
 
     if mechanisms_dir is not None:
         neuron.load_mechanisms(str(mechanisms_dir))
 
-    if default_templates:
-        load_templates(os.path.join(bionet_dir, 'default_templates'))
+    # if default_templates:
+    #     load_templates(os.path.join(bionet_dir, 'default_templates'))
 
-    if templates_dir:
-        load_templates(templates_dir)
+    # if templates_dir:
+    #     load_templates(templates_dir)
 
 
 def load_templates(template_dir):
