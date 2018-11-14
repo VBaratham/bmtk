@@ -264,6 +264,10 @@ class ConfigDict(dict):
         return self.run.get('nsteps_block', 5000)
 
     @property
+    def calc_ecp(self):
+        return self.run.get('calc_ecp', False)
+
+    @property
     def conditions(self):
         return self['conditions']
 

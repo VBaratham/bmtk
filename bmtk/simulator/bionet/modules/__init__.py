@@ -21,7 +21,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 from .ecp import EcpMod
-from .record_cellvars import MembraneReport, SomaReport
+from .record_cellvars import MembraneReport, SomaReport, SectionReport
 from .record_spikes import SpikesMod
 from .xstim import XStimMod
 from .save_synapses import SaveSynapses

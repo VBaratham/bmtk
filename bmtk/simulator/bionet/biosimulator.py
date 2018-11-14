@@ -315,25 +315,34 @@ class BioSimulator(Simulator):
             else:
                 io.log_exception('Can not parse input format {}'.format(sim_input.name))
 
+        if config.calc_ecp:
+            for gid, cell in network.cell_type_maps('biophysical').items():
+                cell.setup_ecp()
+            sim.h.cvode.use_fast_imem(1)
+
         # Parse the "reports" section of the config and load an associated output module for each report
         sim_reports = reports.from_config(config)
         for report in sim_reports:
             if isinstance(report, reports.SpikesReport):
                 mod = mods.SpikesMod(**report.params)
+                
+            elif isinstance(report, reports.SectionReport):
+                mod = mods.SectionReport(**report.params)
 
             elif isinstance(report, reports.MembraneReport):
                 if report.params['sections'] == 'soma':
                     mod = mods.SomaReport(**report.params)
-
+                
                 else:
                     mod = mods.MembraneReport(**report.params)
 
             elif isinstance(report, reports.ECPReport):
+                assert config.calc_ecp
                 mod = mods.EcpMod(**report.params)
                 # Set up the ability for ecp on all relevant cells
                 # TODO: According to spec we need to allow a different subset other than only biophysical cells
-                for gid, cell in network.cell_type_maps('biophysical').items():
-                    cell.setup_ecp()
+                # for gid, cell in network.cell_type_maps('biophysical').items():
+                #     cell.setup_ecp()
 
             elif report.module == 'save_synapses':
                 mod = mods.SaveSynapses(**report.params)

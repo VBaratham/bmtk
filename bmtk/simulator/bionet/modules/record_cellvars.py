@@ -128,6 +128,7 @@ class MembraneReport(SimulatorMod):
         # save all necessary cells/variables at the current time-step into memory
         for gid in self._local_gids:
             cell = sim.net.get_cell_gid(gid)
+
             for var_name in self._variables:
                 seg_vals = [getattr(seg, var_name) for seg in cell.get_segments()]
                 self._var_recorder.record_cell(gid, var_name, seg_vals, tstep)
@@ -179,3 +180,23 @@ class SomaReport(MembraneReport):
                 self._var_recorder.record_cell(gid, var_name, [new_val], tstep)
 
         self._block_step += 1
+
+class SectionReport(MembraneReport):
+    """For variables like im which have one value per section, not segment"""
+
+    def initialize(self, sim):
+        self._get_gids(sim)
+        self._save_sim_data(sim)
+
+        for gid in self._local_gids:
+            cell = sim.net.get_cell_gid(gid)
+            sec_list = range(len(cell.get_sections()))
+            self._var_recorder.add_cell(gid, sec_list, sec_list)
+
+        self._var_recorder.initialize(sim.n_steps, sim.nsteps_block)
+
+    def step(self, sim, tstep):
+        for gid in self._local_gids:
+            cell = sim.net.get_cell_gid(gid)
+            im_vals = cell.get_im()
+            self._var_recorder.record_cell(gid, 'im', im_vals, tstep)
