@@ -200,3 +200,5 @@ class SectionReport(MembraneReport):
             cell = sim.net.get_cell_gid(gid)
             im_vals = cell.get_im()
             self._var_recorder.record_cell(gid, 'im', im_vals, tstep)
+            
+        self._block_step += 1
