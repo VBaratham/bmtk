@@ -143,7 +143,6 @@ class CellVarRecorder(object):
         """
         Create and return a dataset that doesn't get filled right when created
         """
-        self._io.log_info("Creating big dataset")
         spaceid = h5py.h5s.create_simple(shape)
         plist = h5py.h5p.create(h5py.h5p.DATASET_CREATE)
         plist.set_fill_time(h5py.h5d.FILL_TIME_NEVER)
