@@ -188,6 +188,8 @@ class SectionReport(MembraneReport):
         self._get_gids(sim)
         self._save_sim_data(sim)
 
+        io.info('in SectionReport.initialize(), local_gids = {}'.format(str(s) for s in self._local_gids))
+
         for gid in self._local_gids:
             cell = sim.net.get_cell_gid(gid)
             sec_list = range(len(cell.get_sections()))
