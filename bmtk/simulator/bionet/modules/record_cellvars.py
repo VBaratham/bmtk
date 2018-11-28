@@ -188,7 +188,7 @@ class SectionReport(MembraneReport):
         self._get_gids(sim)
         self._save_sim_data(sim)
 
-        io.log_info('in SectionReport.initialize(), local_gids = {}'.format(str(s) for s in self._local_gids))
+        io.log_info('in SectionReport.initialize(), local_gids = {}'.format(' '.join(str(s) for s in self._local_gids)))
 
         for gid in self._local_gids:
             cell = sim.net.get_cell_gid(gid)
