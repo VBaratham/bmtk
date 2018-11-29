@@ -139,6 +139,18 @@ class CellVarRecorder(object):
         self._n_segments_local += n_segs
         self._n_gids_local += 1
 
+    def _create_big_dataset(self, where, name, shape, dtype):
+        """
+        Create and return a dataset that doesn't get filled right when created
+        """
+        spaceid = h5py.h5s.create_simple(shape)
+        plist = h5py.h5p.create(h5py.h5p.DATASET_CREATE)
+        plist.set_fill_time(h5py.h5d.FILL_TIME_NEVER)
+        chunkshape = (shape[0]/500, shape[1]/512) # TODO: don't use fixed values?
+        plist.set_chunk(chunkshape)
+        datasetid = h5py.h5d.create(where.id,name,h5py.h5t.NATIVE_FLOAT, spaceid, plist)
+        return h5py.Dataset(datasetid)
+
     def initialize(self, n_steps, buffer_size=0):
         self._calc_offset()
         self._create_h5_file()
@@ -170,8 +182,9 @@ class CellVarRecorder(object):
             if self._buffer_data:
                 # Set up in-memory block to buffer recorded variables before writing to the dataset
                 data_tables.buffer_block = np.zeros((buffer_size, self._n_segments_local), dtype=np.float)
-                data_tables.data_block = data_grp.create_dataset('data', shape=(n_steps, self._n_segments_all),
-                                                                 dtype=np.float, chunks=True)
+                # data_tables.data_block = data_grp.create_dataset('data', shape=(n_steps, self._n_segments_all),
+                #                                                  dtype=np.float, chunks=True)
+                data_tables.data_block = self._create_big_dataset(data_grp, 'data', (n_steps, self._n_segments_all), np.float)
                 data_tables.data_block.attrs['variable_name'] = var_name
             else:
                 # Since we are not buffering data, we just write directly to the on-disk dataset
