@@ -182,7 +182,17 @@ class BioCell(Cell):
         return 1
 
     def _set_connections(self, edge_prop, src_node, syn_weight, stim=None):
-        tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
+        if getattr(edge_prop, 'prob_peaks'):
+            # Compute probability based on proximity to the peak depths given at network build time
+            tar_seg_prob = np.zeros(tar_seg_prob)
+            for mu, std in zip(edge_prop.prob_peaks, edge_prop.prob_peak_std):
+                _z = lambda idx: self._seg_coords['p05'][idx][2]
+                tar_seg_prob += np.array([self.prng.normal(mu - _z(idx), std) for idx in self._secs])
+            tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
+        else:
+            # Compute probability based on segment length
+            tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
+            
         src_gid = src_node.node_id
         nsyns = edge_prop.nsyns
 
