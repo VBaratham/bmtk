@@ -188,12 +188,11 @@ class BioCell(Cell):
             tar_seg_prob = np.zeros(len(self._secs))
             prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
             prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
+            _z = lambda idx: self._seg_coords['p05'][2, idx]
             for mu, std in zip(prob_peaks, prob_peak_std):
-                _z = lambda idx: self._seg_coords['p05'][2, idx]
                 tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
             tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
             tar_seg_ix = range(len(self._secs))
-            print("DEPTH {}".format(','.join(str(_z(i)) for i in tar_seg_ix)))
         except KeyError:
             # Compute probability based on segment length
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
@@ -207,6 +206,15 @@ class BioCell(Cell):
         secs = self._secs[segs_ix]  # sections where synapases connect
         xs = self._morph.seg_prop['x'][segs_ix]  # distance along the section where synapse connects, i.e., seg_x
 
+        # DEBUG
+        try:
+            _z = lambda idx: self._seg_coords['p05'][2, idx]
+            edge_prop['prob_peaks']
+            print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
+        except:
+            pass
+        # END DEBUG
+        
         # TODO: this should be done just once
         synapses = [edge_prop.load_synapses(x, sec) for x, sec in zip(xs, secs)]
 
