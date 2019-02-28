@@ -188,7 +188,7 @@ class BioCell(Cell):
             tar_seg_prob = np.zeros(len(self._secs))
             for mu, std in zip(edge_prop['prob_peaks'], edge_prop['prob_peak_std']):
                 _z = lambda idx: self._seg_coords['p05'][idx][2]
-                tar_seg_prob += np.array([self.prng.normal(mu - _z(idx), std) for idx in self._secs])
+                tar_seg_prob += np.array([self.prng.normal(mu - _z(idx), std) for idx in range(len(self._secs))])
             tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
             tar_seg_ix = range(len(self._secs))
             print "used prob_peaks"
