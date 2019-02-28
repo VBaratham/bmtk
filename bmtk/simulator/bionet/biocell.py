@@ -21,6 +21,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import numpy as np
+from scipy.stats import norm
 from bmtk.simulator.bionet import utils, nrn
 from bmtk.simulator.bionet.cell import Cell
 import six
@@ -189,9 +190,8 @@ class BioCell(Cell):
             prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
             prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
             for mu, std in zip(prob_peaks, prob_peak_std):
-                import ipdb; ipdb.set_trace()
                 _z = lambda idx: self._seg_coords['p05'][2, idx]
-                tar_seg_prob += np.array([self.prng.normal(mu - _z(idx), std) for idx in range(len(self._secs))])
+                tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
             tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
             tar_seg_ix = range(len(self._secs))
             print "used prob_peaks"
@@ -199,7 +199,7 @@ class BioCell(Cell):
             # Compute probability based on segment length
             print "using old section probabilities"
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
-            
+
         src_gid = src_node.node_id
         nsyns = edge_prop.nsyns
 
