@@ -185,7 +185,7 @@ class BioCell(Cell):
         try:
             # Compute probability based on proximity to the peak depths given at network build time
             print "trying to use prob_peaks..."
-            tar_seg_prob = np.zeros(tar_seg_prob)
+            tar_seg_prob = np.zeros(len(self._segments))
             for mu, std in zip(edge_prop['prob_peaks'], edge_prop['prob_peak_std']):
                 _z = lambda idx: self._seg_coords['p05'][idx][2]
                 tar_seg_prob += np.array([self.prng.normal(mu - _z(idx), std) for idx in self._segments])
