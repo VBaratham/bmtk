@@ -197,6 +197,8 @@ class BioCell(Cell):
             # Compute probability based on segment length
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
 
+        print("DEPTH {}".format(','.join(str(_z(i)) for i in tar_seg_ix)))
+
         src_gid = src_node.node_id
         nsyns = edge_prop.nsyns
 
