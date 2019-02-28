@@ -207,6 +207,9 @@ class BioCell(Cell):
         xs = self._morph.seg_prop['x'][segs_ix]  # distance along the section where synapse connects, i.e., seg_x
 
         # DEBUG
+        zs = [_z(i) for i in tar_seg_ix]
+        idx = np.argsort(zs)
+        print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
         try:
             _z = lambda idx: self._seg_coords['p05'][2, idx]
             edge_prop['prob_peaks']
