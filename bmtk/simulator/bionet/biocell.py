@@ -211,7 +211,7 @@ class BioCell(Cell):
             _z = lambda idx: self._seg_coords['p05'][2, idx]
             edge_prop['prob_peaks']
             print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
-            zs = [_z(i) for i in tar_seg_ix]
+            zs = np.array([_z(i) for i in tar_seg_ix])
             idx = np.argsort(zs)
             print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
         except:
