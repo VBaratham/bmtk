@@ -185,14 +185,17 @@ class BioCell(Cell):
     def _set_connections(self, edge_prop, src_node, syn_weight, stim=None):
         try:
             # Compute probability based on proximity to the peak depths given at network build time
-            tar_seg_prob = np.zeros(len(self._secs))
-            prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
-            prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
-            _z = lambda idx: self._seg_coords['p05'][2, idx]
-            for mu, std in zip(prob_peaks, prob_peak_std):
-                tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
-            tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
-            tar_seg_ix = range(len(self._secs))
+            if edge_prop['prob_peaks']:
+                tar_seg_prob = np.zeros(len(self._secs))
+                prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
+                prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
+                _z = lambda idx: self._seg_coords['p05'][2, idx]
+                for mu, std in zip(prob_peaks, prob_peak_std):
+                    tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
+                tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
+                tar_seg_ix = range(len(self._secs))
+            else:
+                raise ValueError()
         except KeyError:
             # Compute probability based on segment length
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
