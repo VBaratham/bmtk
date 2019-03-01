@@ -195,7 +195,7 @@ class BioCell(Cell):
                 tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
                 tar_seg_ix = range(len(self._secs))
             else:
-                raise ValueError()
+                raise KeyError() # just to trigger the except block below...
         except KeyError:
             # Compute probability based on segment length
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
