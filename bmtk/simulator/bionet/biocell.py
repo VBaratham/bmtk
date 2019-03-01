@@ -194,6 +194,7 @@ class BioCell(Cell):
                     tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
                 tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
                 tar_seg_ix = range(len(self._secs))
+                print("Used prob_peaks")
             else:
                 raise KeyError() # just to trigger the except block below...
         except KeyError:
@@ -217,7 +218,7 @@ class BioCell(Cell):
                 zs = np.array([_z(i) for i in tar_seg_ix])
                 idx = np.argsort(zs)
                 print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
-        except:
+        except KeyError:
             pass
         # END DEBUG
         
