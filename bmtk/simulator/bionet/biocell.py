@@ -189,7 +189,7 @@ class BioCell(Cell):
                 tar_seg_prob = np.zeros(len(self._secs))
                 prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
                 prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
-                _z = lambda idx: self._seg_coords['p05'][2, idx]
+                _z = lambda idx: self._seg_coords['p05'][1, idx]
                 for mu, std in zip(prob_peaks, prob_peak_std):
                     tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
                 tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
@@ -211,7 +211,7 @@ class BioCell(Cell):
 
         # DEBUG
         try:
-            _z = lambda idx: self._seg_coords['p05'][2, idx]
+            _z = lambda idx: self._seg_coords['p05'][1, idx]
             edge_prop['prob_peaks']
             print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
             zs = np.array([_z(i) for i in tar_seg_ix])
