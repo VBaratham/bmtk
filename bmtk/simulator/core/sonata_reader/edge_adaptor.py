@@ -62,7 +62,7 @@ class SonataBaseEdge(object):
         return self._edge[item]
 
     def __contains__(self, prop_key):
-        return super(self, SonataBase).__contains__(prop_key)
+        return self._edge.__contains__(prop_key)
 
 class EdgeAdaptor(object):
     def __init__(self, network):

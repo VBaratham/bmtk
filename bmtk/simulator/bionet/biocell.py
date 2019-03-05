@@ -210,7 +210,7 @@ class BioCell(Cell):
 
         # DEBUG
         _z = lambda idx: self._seg_coords['p05'][1, idx]
-        if edge_prop['prob_peaks']:
+        if 'prob_peaks' in edge_prop:
             print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
             zs = np.array([_z(i) for i in tar_seg_ix])
             idx = np.argsort(zs)
