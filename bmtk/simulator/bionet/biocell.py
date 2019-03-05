@@ -183,22 +183,20 @@ class BioCell(Cell):
         return 1
 
     def _set_connections(self, edge_prop, src_node, syn_weight, stim=None):
-        try:
+        if 'prob_peaks' in edge_prop:
             # Compute probability based on proximity to the peak depths given at network build time
-            if edge_prop['prob_peaks']:
-                tar_seg_prob = np.zeros(len(self._secs))
-                prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
-                prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
-                _z = lambda idx: self._seg_coords['p05'][1, idx]
-                for mu, std in zip(prob_peaks, prob_peak_std):
-                    tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
-                tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
-                tar_seg_ix = range(len(self._secs))
-                print("Used prob_peaks")
-            else:
-                raise KeyError() # just to trigger the except block below...
-        except KeyError:
+            tar_seg_prob = np.zeros(len(self._secs))
+            prob_peaks = [float(x) for x in edge_prop['prob_peaks'].split(',')]
+            prob_peak_std = [float(x) for x in edge_prop['prob_peak_std'].split(',')]
+            _z = lambda idx: self._seg_coords['p05'][1, idx]
+            for mu, std in zip(prob_peaks, prob_peak_std):
+                tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
+            tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
+            tar_seg_ix = range(len(self._secs))
+            print("Used prob_peaks")
+        else:
             # Compute probability based on segment length
+            print("used get target segments")
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
 
 
@@ -211,15 +209,12 @@ class BioCell(Cell):
         xs = self._morph.seg_prop['x'][segs_ix]  # distance along the section where synapse connects, i.e., seg_x
 
         # DEBUG
-        try:
-            _z = lambda idx: self._seg_coords['p05'][1, idx]
-            if edge_prop['prob_peaks']:
-                print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
-                zs = np.array([_z(i) for i in tar_seg_ix])
-                idx = np.argsort(zs)
-                print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
-        except KeyError:
-            pass
+        _z = lambda idx: self._seg_coords['p05'][1, idx]
+        if edge_prop['prob_peaks']:
+            print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
+            zs = np.array([_z(i) for i in tar_seg_ix])
+            idx = np.argsort(zs)
+            print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
         # END DEBUG
         
         # TODO: this should be done just once
