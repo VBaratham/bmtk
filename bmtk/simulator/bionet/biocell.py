@@ -193,10 +193,8 @@ class BioCell(Cell):
                 tar_seg_prob += np.array([norm.pdf(_z(idx), mu, std) for idx in range(len(self._secs))])
             tar_seg_prob = tar_seg_prob / sum(tar_seg_prob)
             tar_seg_ix = range(len(self._secs))
-            print("Used prob_peaks")
         else:
             # Compute probability based on segment length
-            print("used get target segments")
             tar_seg_ix, tar_seg_prob = self._morph.get_target_segments(edge_prop)
 
 
@@ -212,9 +210,6 @@ class BioCell(Cell):
         _z = lambda idx: self._seg_coords['p05'][1, idx]
         if 'prob_peaks' in edge_prop and edge_prop['prob_peaks']:
             print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
-            zs = np.array([_z(i) for i in tar_seg_ix])
-            idx = np.argsort(zs)
-            print '\n'.join(str(s) for s in zip(zs[idx], tar_seg_prob[idx]))
         # END DEBUG
         
         # TODO: this should be done just once
