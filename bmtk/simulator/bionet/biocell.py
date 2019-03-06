@@ -208,7 +208,7 @@ class BioCell(Cell):
 
         # DEBUG
         _z = lambda idx: self._seg_coords['p05'][1, idx]
-        if 'prob_peaks' in edge_prop and edge_prop['prob_peaks']:
+        if edge_prop._edge.source_population == 'thalamus':
             print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
         # END DEBUG
         
