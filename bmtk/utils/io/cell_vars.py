@@ -146,7 +146,10 @@ class CellVarRecorder(object):
         spaceid = h5py.h5s.create_simple(shape)
         plist = h5py.h5p.create(h5py.h5p.DATASET_CREATE)
         plist.set_fill_time(h5py.h5d.FILL_TIME_NEVER)
-        chunkshape = (shape[0]/500, shape[1]/512) # TODO: don't use fixed values?
+        if shape[0] < 500 or shape[1] < 512:
+            chunkshape = shape
+        else:
+            chunkshape = (shape[0]/500, shape[1]/512) # TODO: don't use fixed values?
         plist.set_chunk(chunkshape)
         datasetid = h5py.h5d.create(where.id,name,h5py.h5t.NATIVE_FLOAT, spaceid, plist)
         return h5py.Dataset(datasetid)
