@@ -206,12 +206,6 @@ class BioCell(Cell):
         secs = self._secs[segs_ix]  # sections where synapases connect
         xs = self._morph.seg_prop['x'][segs_ix]  # distance along the section where synapse connects, i.e., seg_x
 
-        # DEBUG
-        _z = lambda idx: self._seg_coords['p05'][1, idx]
-        if edge_prop._edge.source_population == 'thalamus':
-            print("DEPTH {}".format(','.join(str(_z(i)) for i in segs_ix)))
-        # END DEBUG
-        
         # TODO: this should be done just once
         synapses = [edge_prop.load_synapses(x, sec) for x, sec in zip(xs, secs)]
 
