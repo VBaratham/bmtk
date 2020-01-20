@@ -187,7 +187,7 @@ class CellVarRecorder(object):
                 data_tables.buffer_block = np.zeros((buffer_size, self._n_segments_local), dtype=np.float)
                 # data_tables.data_block = data_grp.create_dataset('data', shape=(n_steps, self._n_segments_all),
                 #                                                  dtype=np.float, chunks=True)
-                data_tables.data_block = self._create_big_dataset(data_grp, 'data', (n_steps, self._n_segments_all), np.float)
+                data_tables.data_block = self._create_big_dataset(data_grp, b'data', (n_steps, self._n_segments_all), np.float)
                 data_tables.data_block.attrs['variable_name'] = var_name
             else:
                 # Since we are not buffering data, we just write directly to the on-disk dataset

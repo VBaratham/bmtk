@@ -134,7 +134,8 @@ class BioCell(Cell):
 
     def store_segments(self):
         self._segments = []
-        for sec in self._secs:
+        # for sec in self._secs:
+        for sec in self.hobj.all:
             for seg in sec:
                 self._segments.append(seg)
 
