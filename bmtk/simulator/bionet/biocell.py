@@ -100,6 +100,9 @@ class BioCell(Cell):
         self._seg_coords['p1'] = self._pos_soma + np.dot(RotXYZ, morph_seg_coords['p1'])
         self._seg_coords['p05'] = self._pos_soma + np.dot(RotXYZ, morph_seg_coords['p05'])
 
+        self._seg_coords['d0'] = morph_seg_coords['d0']
+        self._seg_coords['d1'] = morph_seg_coords['d1']
+
     def get_seg_coords(self):
         return self._seg_coords
 
