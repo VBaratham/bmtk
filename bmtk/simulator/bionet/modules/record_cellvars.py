@@ -22,6 +22,7 @@
 #
 import os
 import h5py
+import numpy as np
 from neuron import h
 
 from bmtk.simulator.bionet.modules.sim_module import SimulatorMod
@@ -200,8 +201,12 @@ class SectionReport(MembraneReport):
 
     def step(self, sim, tstep):
         for gid in self._local_gids:
-            cell = sim.net.get_cell_gid(gid)
-            im_vals = cell.get_im()
-            self._var_recorder.record_cell(gid, 'im', im_vals, tstep)
+            for var in self._variables:
+                cell = sim.net.get_cell_gid(gid)
+                if var == 'im':
+                    vals = cell.get_im()
+                elif var =='v':
+                    vals = np.array([sec.v for sec in cell.get_sections()])
+                self._var_recorder.record_cell(gid, var, vals, tstep)
             
         self._block_step += 1
