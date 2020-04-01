@@ -109,17 +109,19 @@ class MembraneReport(SimulatorMod):
 
         # TODO: get section by name and/or list of section ids
         # Build segment/section list
+        sec_list = []
+        seg_list = []
         for gid in self._local_gids:
             cell = sim.net.get_cell_gid(gid)
             cell.store_segments()
-            # for sec_id, sec in enumerate(cell.hobj.all):
-            #     for seg in sec:
-            #         # TODO: Make sure the seg has the recorded variable(s)
-            #         sec_list.append(sec_id)
-            #         seg_list.append(seg.x)
+            for sec_id, sec in enumerate(cell.get_sections()):
+                for seg in sec:
+                    # TODO: Make sure the seg has the recorded variable(s)
+                    sec_list.append(sec_id)
+                    seg_list.append(seg.x)
 
-            sec_list = [cell.get_sections_id().index(sec) for sec in cell.get_sections()]
-            seg_list = [seg.x for seg in cell.get_segments()]
+            # sec_list = [cell.get_sections_id().index(sec) for sec in cell.get_sections()]
+            # seg_list = [seg.x for seg in cell.get_segments()]
                     
             self._var_recorder.add_cell(gid, sec_list, seg_list)
 

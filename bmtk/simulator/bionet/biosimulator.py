@@ -179,7 +179,7 @@ class BioSimulator(Simulator):
             h.v_init = self.v_init
 
         h.celsius = self.celsius
-        h.cao0_ca_ion = self.cao0
+        # h.cao0_ca_ion = self.cao0
                 
     def set_spikes_recording(self):
         for gid, _ in self.net.get_local_cells().items():
