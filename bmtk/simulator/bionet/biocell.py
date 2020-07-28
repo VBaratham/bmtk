@@ -106,6 +106,18 @@ class BioCell(Cell):
     def get_seg_coords(self):
         return self._seg_coords
 
+    def get_part_ids(self, enum=None):
+        """
+        Return a list of id's for which "part" of the neuron each section belongs to.
+        The list will be in the same order as self._seg_coords
+
+        enum = dict mapping "part" string (soma, dend, apic, basal, axon)
+        Default: 0 = soma, 1 = dend, 2 = apic, 3 = basal, 4 = axon
+        """
+        enum = enum or {'soma': 0, 'dend': 1, 'apic': 2, 'basal': 3, 'axon': 4}
+        return [enum[sec.name().split('.')[-1].split('[')[0]] for sec in self._secs]
+            
+
     @property
     def morphology_file(self):
         # TODO: Get from self._node.morphology_file
